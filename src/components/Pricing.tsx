@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { Check, Zap, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const plans = [
   {
@@ -16,7 +18,7 @@ const plans = [
       "Basic prompt history",
     ],
     cta: "Get Started",
-    href: "/register",
+    href: "/dashboard",
     highlighted: false,
   },
   {
@@ -37,10 +39,10 @@ const plans = [
     highlighted: true,
   },
   {
-    name: "Team",
-    price: "$49",
-    period: "/month",
-    description: "Built for collaborative design teams",
+    name: "Enterprise",
+    price: "Custom",
+    period: "",
+    description: "For Large Scale Corporations",
     features: [
       "Everything in Pro",
       "5 team members included",
@@ -49,13 +51,35 @@ const plans = [
       "API access",
       "Dedicated support",
     ],
-    cta: "Contact Sales",
-    href: "/register",
+    cta: "Contact Us",
+    href: "mailto:horaifchi@gmail.com?subject=PromptForge%20AI%20-%20Enterprise%20Inquiry",
     highlighted: false,
   },
 ];
 
 export default function Pricing() {
+  const router = useRouter();
+  const [loading, setLoading] = useState<string | null>(null);
+
+  const handleCheckout = async () => {
+    setLoading("Pro");
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID,
+        }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch {
+      setLoading(null);
+    }
+  };
+
   return (
     <section id="pricing" className="relative px-6 py-24">
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-accent/[0.02] to-transparent" />
@@ -80,13 +104,13 @@ export default function Pricing() {
               key={plan.name}
               className={`relative flex flex-col rounded-2xl border p-6 transition-all duration-300 ${
                 plan.highlighted
-                  ? "border-accent/40 bg-card shadow-lg shadow-accent/5"
+                  ? "border border-orange-500/30 shadow-2xl shadow-orange-500/5 bg-card"
                   : "border-border bg-card hover:border-border-hover"
               }`}
             >
               {plan.highlighted && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="rounded-full bg-accent px-3 py-1 text-xs font-semibold text-white">
+                  <span className="rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-3 py-1 text-xs font-bold font-sans tracking-wide text-zinc-950">
                     Most Popular
                   </span>
                 </div>
@@ -113,23 +137,30 @@ export default function Pricing() {
                     key={feature}
                     className="flex items-start gap-2.5 text-sm text-muted"
                   >
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-orange-500" />
                     {feature}
                   </li>
                 ))}
               </ul>
 
-              <Link
-                href={plan.href}
-                className={`group flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
-                  plan.highlighted
-                    ? "bg-accent text-white hover:bg-accent-glow hover:shadow-lg hover:shadow-accent/15"
-                    : "border border-border bg-background text-muted hover:border-border-hover hover:text-foreground"
-                }`}
-              >
-                {plan.cta}
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-              </Link>
+              {plan.highlighted ? (
+                <button
+                  onClick={handleCheckout}
+                  disabled={loading !== null}
+                  className={`w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-zinc-950 font-semibold text-sm px-5 py-3 rounded-xl shadow-lg shadow-orange-500/10 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  {loading === "Pro" ? "Redirecting..." : plan.cta}
+                  {loading !== "Pro" && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />}
+                </button>
+              ) : (
+                <Link
+                  href={plan.href}
+                  className="group flex items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium text-muted transition-all hover:border-border-hover hover:text-foreground"
+                >
+                  {plan.cta}
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              )}
             </div>
           ))}
         </div>

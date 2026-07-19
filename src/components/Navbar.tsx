@@ -1,6 +1,6 @@
 "use client";
 
-import { Anvil, Menu, X, LogOut, User } from "lucide-react";
+import { Anvil, Menu, X, LogOut, LayoutDashboard } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-provider";
@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/auth-provider";
 const navLinks = [
   { label: "Playground", href: "#playground" },
   { label: "Features", href: "#features" },
-  { label: "Pricing", href: "/pricing" },
+  { label: "Pricing", href: "/#pricing" },
   { label: "Docs", href: "#" },
 ];
 
@@ -32,8 +32,6 @@ export default function Navbar() {
     await signOut();
     setDropdownOpen(false);
   };
-
-  const userInitial = user?.email?.charAt(0).toUpperCase() ?? "U";
 
   return (
     <nav className="fixed top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-xl">
@@ -66,7 +64,15 @@ export default function Navbar() {
           {loading ? (
             <div className="h-9 w-9 rounded-full bg-card animate-pulse" />
           ) : user ? (
-            <div className="relative" ref={dropdownRef}>
+            <>
+              <Link
+                href="/dashboard"
+                className="flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-accent-glow hover:shadow-lg hover:shadow-accent/10 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 focus:ring-offset-background"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                Dashboard
+              </Link>
+              <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/15 text-accent text-sm font-semibold transition-all hover:bg-accent/25 hover:ring-2 hover:ring-accent/30"
@@ -77,8 +83,14 @@ export default function Navbar() {
                     alt="Profile"
                     className="h-9 w-9 rounded-full object-cover"
                   />
+                ) : user.user_metadata?.gender === "female" ? (
+                  <svg className="h-8 w-8 text-zinc-400 bg-zinc-900 rounded-full p-1 border border-zinc-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
                 ) : (
-                  userInitial
+                  <svg className="h-8 w-8 text-zinc-400 bg-zinc-900 rounded-full p-1 border border-zinc-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
                 )}
               </button>
 
@@ -104,7 +116,8 @@ export default function Navbar() {
                   </div>
                 </div>
               )}
-            </div>
+              </div>
+            </>
           ) : (
             <>
               <Link
@@ -113,12 +126,12 @@ export default function Navbar() {
               >
                 Sign in
               </Link>
-              <a
-                href="#"
-                className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-all hover:bg-accent-glow hover:shadow-lg hover:shadow-accent/10"
+              <Link
+                href="/dashboard"
+                className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-accent-glow hover:shadow-lg hover:shadow-accent/10 focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 focus:ring-offset-background"
               >
-                Get Started
-              </a>
+                Go to Dashboard
+              </Link>
             </>
           )}
         </div>
@@ -148,6 +161,14 @@ export default function Navbar() {
             <div className="mt-3 flex flex-col gap-2">
               {loading ? null : user ? (
                 <>
+                  <Link
+                    href="/dashboard"
+                    className="flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-accent-glow focus:outline-none focus:ring-2 focus:ring-accent/50"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <LayoutDashboard className="h-4 w-4" />
+                    Go to Dashboard
+                  </Link>
                   <div className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-2.5">
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent/15 text-accent text-xs font-semibold">
                       {user.user_metadata?.avatar_url ? (
@@ -156,8 +177,14 @@ export default function Navbar() {
                           alt="Profile"
                           className="h-8 w-8 rounded-full object-cover"
                         />
+                      ) : user.user_metadata?.gender === "female" ? (
+                        <svg className="h-7 w-7 text-zinc-400 bg-zinc-900 rounded-full p-0.5 border border-zinc-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
                       ) : (
-                        userInitial
+                        <svg className="h-7 w-7 text-zinc-400 bg-zinc-900 rounded-full p-0.5 border border-zinc-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -186,12 +213,13 @@ export default function Navbar() {
                   >
                     Sign in
                   </Link>
-                  <a
-                    href="#"
-                    className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white text-center transition-all hover:bg-accent-glow"
+                  <Link
+                    href="/dashboard"
+                    className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white text-center transition-all duration-200 hover:bg-accent-glow focus:outline-none focus:ring-2 focus:ring-accent/50"
+                    onClick={() => setMobileOpen(false)}
                   >
-                    Get Started
-                  </a>
+                    Go to Dashboard
+                  </Link>
                 </>
               )}
             </div>
