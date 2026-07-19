@@ -1,4 +1,5 @@
 import { Star, Quote } from "lucide-react";
+import Image from "next/image";
 
 const reviews = [
   {
@@ -93,11 +94,12 @@ export default function Reviews() {
 
               {/* Author */}
               <div className="mt-6 flex items-center gap-3 pt-5 border-t border-border/60">
-                <img
+                <Image
                   src={review.avatar}
                   alt={review.name}
+                  width={40}
+                  height={40}
                   className="h-10 w-10 rounded-full object-cover ring-2 ring-border ring-offset-2 ring-offset-card"
-                  loading="lazy"
                 />
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">

@@ -8,7 +8,7 @@ export function ShaderAnimation() {
     camera: THREE.Camera
     scene: THREE.Scene
     renderer: THREE.WebGLRenderer
-    uniforms: any
+    uniforms: { time: { type: string; value: number }; resolution: { type: string; value: THREE.Vector2 } }
     animationId: number
   } | null>(null)
 

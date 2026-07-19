@@ -24,7 +24,7 @@ function compileOpenAI(prompt: string, variables: Record<string, string>): strin
   const lines = resolved.split("\n").filter((l) => l.trim());
 
   const body = lines
-    .map((line, i) => {
+    .map((line) => {
       const trimmed = line.trim();
       if (/^\d+\./.test(trimmed)) return trimmed;
       if (/^[A-Z]/.test(trimmed) && trimmed.length < 60) return `\n## ${trimmed}`;

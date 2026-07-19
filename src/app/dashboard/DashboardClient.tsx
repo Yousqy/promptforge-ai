@@ -147,11 +147,7 @@ export default function DashboardClient({ plan: initialPlan }: { plan: string })
       .catch(() => {});
   }, []);
 
-  useEffect(() => {
-    if (results.length > 0 && !activeTab) {
-      setActiveTab(results[0].model);
-    }
-  }, [results, activeTab]);
+  const effectiveTab = activeTab ?? (results.length > 0 ? results[0].model : null);
 
   const toggleModel = useCallback((id: string) => {
     setSelectedModels((prev) =>
@@ -379,7 +375,7 @@ export default function DashboardClient({ plan: initialPlan }: { plan: string })
     setTimeout(() => setExportCopied(null), 1500);
   }, []);
 
-  const activeResult = results.find((r) => r.model === activeTab);
+  const activeResult = results.find((r) => r.model === effectiveTab);
   const wordCount = prompt.split(/\s+/).filter(Boolean).length;
 
   const usagePercent = usage?.limit
@@ -856,7 +852,7 @@ export default function DashboardClient({ plan: initialPlan }: { plan: string })
               <div className="flex border-b border-border px-2 gap-0.5 overflow-x-auto scrollbar-thin">
                 {results.map((result) => {
                   const model = LLM_MODELS.find((m) => m.id === result.model);
-                  const isActive = activeTab === result.model;
+                  const isActive = effectiveTab === result.model;
                   return (
                     <button
                       key={result.model}

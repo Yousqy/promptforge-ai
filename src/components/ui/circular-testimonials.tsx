@@ -147,7 +147,6 @@ export function CircularTestimonials({
           <AnimatePresence initial={false}>
             {testimonials.map((testimonial, index) => {
               const styles = getImageStyles(index);
-              const isActive = index === activeIndex;
 
               return (
                 <motion.img

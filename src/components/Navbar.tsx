@@ -3,13 +3,14 @@
 import { Anvil, Menu, X, LogOut, LayoutDashboard } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/lib/auth-provider";
 
 const navLinks = [
   { label: "Playground", href: "#playground" },
   { label: "Features", href: "#features" },
   { label: "Pricing", href: "/#pricing" },
-  { label: "Docs", href: "#" },
+  { label: "Docs", href: "/docs" },
 ];
 
 export default function Navbar() {
@@ -78,9 +79,11 @@ export default function Navbar() {
                 className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/15 text-accent text-sm font-semibold transition-all hover:bg-accent/25 hover:ring-2 hover:ring-accent/30"
               >
                 {user.user_metadata?.avatar_url ? (
-                  <img
+                  <Image
                     src={user.user_metadata.avatar_url}
                     alt="Profile"
+                    width={36}
+                    height={36}
                     className="h-9 w-9 rounded-full object-cover"
                   />
                 ) : user.user_metadata?.gender === "female" ? (
@@ -172,9 +175,11 @@ export default function Navbar() {
                   <div className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-2.5">
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent/15 text-accent text-xs font-semibold">
                       {user.user_metadata?.avatar_url ? (
-                        <img
+                        <Image
                           src={user.user_metadata.avatar_url}
                           alt="Profile"
+                          width={32}
+                          height={32}
                           className="h-8 w-8 rounded-full object-cover"
                         />
                       ) : user.user_metadata?.gender === "female" ? (

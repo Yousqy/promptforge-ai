@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Check, Zap, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 const plans = [
   {
@@ -58,7 +57,6 @@ const plans = [
 ];
 
 export default function Pricing() {
-  const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
 
   const handleCheckout = async () => {
