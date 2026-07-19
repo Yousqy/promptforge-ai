@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PromptForge AI — Cross-Model Prompt Compiler</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;border-color:#27272a}
+:root{--bg:#09090b;--fg:#fafafa;--card:#18181b;--card-hover:#1e1e22;--border:#27272a;--border-hover:#3f3f46;--muted:#a1a1aa;--accent:#8b5cf6;--accent-glow:#7c3aed;--accent-subtle:rgba(139,92,246,0.12)}
+body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+a{text-decoration:none;color:inherit}
+::selection{background:rgba(139,92,246,0.3);color:#fafafa}
+
+nav{position:fixed;top:0;z-index:50;width:100%;border-bottom:1px solid var(--border);background:rgba(9,9,11,0.8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.nav-inner{max-width:1152px;margin:0 auto;display:flex;height:64px;align-items:center;justify-content:space-between;padding:0 24px}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{display:flex;height:32px;width:32px;align-items:center;justify-content:center;border-radius:8px;background:rgba(139,92,246,0.1);color:var(--accent)}
+.logo-icon svg{width:16px;height:16px}
+.logo-text{font-size:14px;font-weight:600;letter-spacing:-0.02em;color:var(--fg)}
+.logo-badge{display:inline-flex;align-items:center;border-radius:6px;border:1px solid rgba(139,92,246,0.2);background:rgba(139,92,246,0.05);padding:2px 6px;font-size:10px;font-weight:500;color:var(--accent)}
+.nav-links{display:flex;gap:4px}
+.nav-links a{border-radius:6px;padding:6px 12px;font-size:14px;color:var(--muted);transition:color 0.15s}
+.nav-links a:hover{color:var(--fg)}
+.nav-actions{display:flex;align-items:center;gap:12px}
+.btn-signin{border-radius:8px;border:1px solid var(--border);background:var(--card);padding:8px 16px;font-size:14px;color:var(--muted);transition:all 0.15s}
+.btn-signin:hover{border-color:var(--border-hover);color:var(--fg)}
+.btn-cta{border-radius:8px;background:var(--accent);padding:8px 16px;font-size:14px;font-weight:500;color:#fff;transition:all 0.15s;border:none;cursor:pointer}
+.btn-cta:hover{background:var(--accent-glow);box-shadow:0 8px 24px rgba(139,92,246,0.15)}
+
+.hero{padding:120px 24px 80px;max-width:1152px;margin:0 auto;width:100%}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;border-radius:999px;border:1px solid rgba(139,92,246,0.2);background:rgba(139,92,246,0.05);padding:4px 12px;font-size:12px;font-weight:500;color:var(--accent);margin-bottom:16px}
+.hero-badge svg{width:12px;height:12px}
+.hero h1{font-size:clamp(36px,5vw,60px);font-weight:700;letter-spacing:-0.03em;line-height:1.1;color:var(--fg);text-align:center}
+.hero h1 span{color:var(--accent)}
+.hero-sub{margin-top:16px;text-align:center;font-size:16px;color:var(--muted);max-width:560px;margin-left:auto;margin-right:auto;line-height:1.6}
+
+.playground{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:48px}
+.panel{border-radius:12px;border:1px solid var(--border);background:var(--card);display:flex;flex-direction:column;overflow:hidden}
+.panel-header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);padding:12px 16px}
+.panel-label{font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em}
+.panel-meta{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+
+.input-body{flex:1;padding:16px}
+.prompt-input{width:100%;min-height:160px;resize:none;background:transparent;border:none;outline:none;font-size:14px;color:var(--fg);font-family:'JetBrains Mono',monospace;line-height:1.7}
+.prompt-input::placeholder{color:rgba(161,161,170,0.5)}
+.input-controls{border-top:1px solid var(--border);padding:16px;display:flex;flex-direction:column;gap:16px}
+.control-label{font-size:11px;font-weight:500;color:var(--muted);margin-bottom:6px;display:block}
+
+.model-select{position:relative}
+.model-btn{width:100%;display:flex;align-items:center;justify-content:space-between;border-radius:8px;border:1px solid var(--border);background:var(--bg);padding:10px 12px;font-size:14px;color:var(--fg);cursor:pointer;transition:border-color 0.15s}
+.model-btn:hover{border-color:var(--border-hover)}
+.model-btn .model-icon{display:flex;height:20px;width:20px;align-items:center;justify-content:center;border-radius:4px;background:rgba(139,92,246,0.1);font-size:10px;font-weight:700;color:var(--accent)}
+.model-btn svg.chevron{width:16px;height:16px;color:var(--muted);transition:transform 0.2s}
+.model-btn.open svg.chevron{transform:rotate(180deg)}
+.model-dropdown{position:absolute;z-index:50;margin-top:4px;width:100%;border-radius:8px;border:1px solid var(--border);background:var(--card);box-shadow:0 16px 48px rgba(0,0,0,0.3);display:none}
+.model-dropdown.show{display:block;animation:fadeSlideIn 0.15s ease-out}
+.model-option{display:flex;align-items:center;gap:10px;padding:10px 12px;font-size:14px;color:var(--muted);cursor:pointer;transition:background 0.1s}
+.model-option:first-child{border-radius:8px 8px 0 0}
+.model-option:last-child{border-radius:0 0 8px 8px}
+.model-option:hover{background:var(--bg);color:var(--fg)}
+.model-option.active{background:rgba(139,92,246,0.1);color:var(--accent)}
+
+.style-pills{display:flex;flex-wrap:wrap;gap:6px}
+.style-pill{border-radius:6px;padding:4px 10px;font-size:12px;font-weight:500;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all 0.15s;background:transparent}
+.style-pill:hover{border-color:var(--border-hover);color:var(--fg)}
+.style-pill.active{background:rgba(139,92,246,0.15);color:var(--accent);border-color:rgba(139,92,246,0.3)}
+
+.compile-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:8px;background:var(--accent);padding:12px;font-size:14px;font-weight:500;color:#fff;cursor:pointer;transition:all 0.15s;border:none}
+.compile-btn:hover{background:var(--accent-glow);box-shadow:0 8px 24px rgba(139,92,246,0.15)}
+.compile-btn:disabled{opacity:0.4;cursor:not-allowed}
+.compile-btn:disabled:hover{box-shadow:none}
+.compile-btn svg{width:16px;height:16px}
+.shortcut-hint{text-align:center;font-size:11px;color:rgba(161,161,170,0.5);margin-top:2px}
+.shortcut-hint kbd{border:1px solid var(--border);background:var(--bg);border-radius:3px;padding:1px 5px;font-size:10px;font-family:'JetBrains Mono',monospace}
+
+.output-body{flex:1;padding:16px;min-height:160px}
+.output-empty{display:flex;height:120px;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.output-empty-icon{margin-bottom:12px;display:flex;height:40px;width:40px;align-items:center;justify-content:center;border-radius:8px;background:rgba(139,92,246,0.05);color:var(--accent)}
+.output-empty-icon svg{width:20px;height:20px}
+.output-empty p{font-size:14px;color:var(--muted)}
+.output-empty p:last-of-type{font-size:12px;color:rgba(161,161,170,0.5);margin-top:4px}
+
+.output-compiled{animation:fadeSlideIn 0.4s ease-out}
+.output-text{white-space:pre-wrap;border-radius:8px;background:rgba(9,9,11,0.5);padding:12px;font-size:14px;font-family:'JetBrains Mono',monospace;line-height:1.7;color:var(--fg)}
+.output-meta{margin-top:16px;display:flex;flex-wrap:wrap;gap:12px}
+.meta-badge{display:inline-flex;align-items:center;gap:6px;border-radius:6px;border:1px solid var(--border);background:var(--bg);padding:4px 8px;font-size:12px;color:var(--muted)}
+.meta-badge svg{width:12px;height:12px;color:var(--accent)}
+.copy-btn{display:inline-flex;align-items:center;gap:6px;border-radius:6px;border:1px solid var(--border);background:var(--bg);padding:4px 10px;font-size:12px;color:var(--muted);cursor:pointer;transition:all 0.15s}
+.copy-btn:hover{border-color:var(--border-hover);color:var(--fg)}
+.copy-btn svg{width:12px;height:12px}
+.copy-btn.copied{border-color:rgba(74,222,128,0.3);color:#4ade80}
+
+.shimmer{display:flex;flex-direction:column;gap:12px}
+.shimmer-line{height:16px;border-radius:4px;background:linear-gradient(90deg,transparent 25%,rgba(139,92,246,0.06) 50%,transparent 75%);background-size:200% 100%;animation:shimmer 2s ease-in-out infinite}
+.shimmer-line:nth-child(1){width:75%}
+.shimmer-line:nth-child(2){width:50%}
+.shimmer-line:nth-child(3){width:66%}
+.shimmer-line:nth-child(4){width:33%}
+
+.panel.glow{border-color:rgba(139,92,246,0.4);animation:glowPulse 2s ease-in-out infinite}
+
+.features{border-top:1px solid var(--border);padding:80px 24px}
+.features-inner{max-width:1152px;margin:0 auto}
+.features h2{text-align:center;font-size:clamp(24px,3vw,30px);font-weight:700;letter-spacing:-0.02em;color:var(--fg)}
+.features-sub{text-align:center;margin-top:12px;font-size:16px;color:var(--muted)}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:48px}
+.feature-card{border-radius:12px;border:1px solid var(--border);background:var(--card);padding:24px;transition:all 0.2s}
+.feature-card:hover{border-color:var(--border-hover);background:var(--card-hover)}
+.feature-icon{margin-bottom:16px;display:flex;height:40px;width:40px;align-items:center;justify-content:center;border-radius:8px;background:rgba(139,92,246,0.1);color:var(--accent)}
+.feature-icon svg{width:20px;height:20px}
+.feature-card h3{font-size:14px;font-weight:600;color:var(--fg);margin-bottom:8px}
+.feature-card p{font-size:14px;line-height:1.6;color:var(--muted)}
+
+.cta{border-top:1px solid var(--border);padding:80px 24px}
+.cta-inner{max-width:640px;margin:0 auto;text-align:center}
+.cta h2{font-size:clamp(24px,3vw,30px);font-weight:700;letter-spacing:-0.02em;color:var(--fg)}
+.cta p{margin-top:12px;font-size:16px;color:var(--muted)}
+.cta-buttons{margin-top:32px;display:flex;align-items:center;justify-content:center;gap:16px}
+.btn-primary{border-radius:8px;background:var(--accent);padding:12px 24px;font-size:14px;font-weight:500;color:#fff;transition:all 0.15s;border:none;cursor:pointer}
+.btn-primary:hover{background:var(--accent-glow);box-shadow:0 8px 24px rgba(139,92,246,0.15)}
+.btn-secondary{border-radius:8px;border:1px solid var(--border);background:var(--card);padding:12px 24px;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer;transition:all 0.15s}
+.btn-secondary:hover{border-color:var(--border-hover);color:var(--fg)}
+
+footer{border-top:1px solid var(--border);background:var(--bg)}
+.footer-inner{max-width:1152px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:24px}
+.footer-inner p{font-size:12px;color:var(--muted)}
+.footer-links{display:flex;gap:16px}
+.footer-links a{font-size:12px;color:var(--muted);transition:color 0.15s}
+.footer-links a:hover{color:var(--fg)}
+
+@keyframes glowPulse{0%,100%{box-shadow:0 0 15px rgba(139,92,246,0.15),0 0 45px rgba(139,92,246,0.05);border-color:rgba(139,92,246,0.4)}50%{box-shadow:0 0 25px rgba(139,92,246,0.3),0 0 60px rgba(139,92,246,0.1);border-color:rgba(139,92,246,0.7)}}
+@keyframes fadeSlideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.spin{animation:spin 1s linear infinite}
+
+@media(max-width:768px){
+  .playground{grid-template-columns:1fr}
+  .features-grid{grid-template-columns:1fr}
+  .nav-links{display:none}
+  .nav-actions .btn-signin{display:none}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="logo">
+      <div class="logo-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.287 1.288L3 12l5.8 1.9a2 2 0 0 1 1.288 1.287L12 21l1.9-5.8a2 2 0 0 1 1.287-1.288L21 12l-5.8-1.9a2 2 0 0 1-1.288-1.287Z"/></svg>
+      </div>
+      <span class="logo-text">PromptForge</span>
+      <span class="logo-badge">AI</span>
+    </a>
+    <div class="nav-links">
+      <a href="#playground">Playground</a>
+      <a href="#features">Features</a>
+      <a href="#">Docs</a>
+    </div>
+    <div class="nav-actions">
+      <a href="#" class="btn-signin">Sign in</a>
+      <a href="#" class="btn-cta">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div style="text-align:center">
+    <div class="hero-badge">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.287 1.288L3 12l5.8 1.9a2 2 0 0 1 1.288 1.287L12 21l1.9-5.8a2 2 0 0 1 1.287-1.288L21 12l-5.8-1.9a2 2 0 0 1-1.288-1.287Z"/></svg>
+      Cross-model prompt compiler
+    </div>
+    <h1>Write once.<br><span>Compile for any model.</span></h1>
+    <p class="hero-sub">Transform your raw prompts into optimized, model-specific syntax. One input, four outputs, zero friction.</p>
+  </div>
+
+  <div class="playground">
+    <div class="panel" id="inputPanel">
+      <div class="panel-header">
+        <span class="panel-label">Input</span>
+        <span class="panel-meta" id="wordCount">0 words</span>
+      </div>
+      <div class="input-body">
+        <textarea class="prompt-input" id="promptInput" placeholder="Enter your raw prompt or describe what you want to generate..." rows="6"></textarea>
+      </div>
+      <div class="input-controls">
+        <div>
+          <label class="control-label">Target Model</label>
+          <div class="model-select" id="modelSelect">
+            <button class="model-btn" id="modelBtn">
+              <span style="display:flex;align-items:center;gap:8px"><span class="model-icon" id="modelIcon">MJ</span><span id="modelName">Midjourney</span></span>
+              <svg class="chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div class="model-dropdown" id="modelDropdown">
+              <div class="model-option active" data-value="midjourney" data-icon="MJ"><span class="model-icon">MJ</span>Midjourney</div>
+              <div class="model-option" data-value="flux" data-icon="FX"><span class="model-icon">FX</span>FLUX</div>
+              <div class="model-option" data-value="dalle3" data-icon="DE"><span class="model-icon">DE</span>DALL-E 3</div>
+              <div class="model-option" data-value="stablediffusion" data-icon="SD"><span class="model-icon">SD</span>Stable Diffusion</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <label class="control-label">Style Tokens</label>
+          <div class="style-pills" id="stylePills">
+            <button class="style-pill" data-style="cinematic">Cinematic</button>
+            <button class="style-pill" data-style="cyberpunk">Cyberpunk</button>
+            <button class="style-pill" data-style="hyper-realistic">Hyper-realistic</button>
+            <button class="style-pill" data-style="watercolor">Watercolor</button>
+            <button class="style-pill" data-style="anime">Anime</button>
+            <button class="style-pill" data-style="minimalist">Minimalist</button>
+            <button class="style-pill" data-style="noir">Noir</button>
+            <button class="style-pill" data-style="vintage">Vintage</button>
+            <button class="style-pill" data-style="surreal">Surreal</button>
+            <button class="style-pill" data-style="isometric">Isometric</button>
+          </div>
+        </div>
+        <button class="compile-btn" id="compileBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>
+          Compile Prompt
+        </button>
+        <p class="shortcut-hint">Press <kbd>&#8984; Enter</kbd> to compile</p>
+      </div>
+    </div>
+
+    <div class="panel" id="outputPanel">
+      <div class="panel-header">
+        <span class="panel-label">Output</span>
+        <div id="copyArea"></div>
+      </div>
+      <div class="output-body" id="outputBody">
+        <div class="output-empty" id="outputEmpty">
+          <div class="output-empty-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.287 1.288L3 12l5.8 1.9a2 2 0 0 1 1.288 1.287L12 21l1.9-5.8a2 2 0 0 1 1.287-1.288L21 12l-5.8-1.9a2 2 0 0 1-1.288-1.287Z"/></svg>
+          </div>
+          <p>Your compiled prompt will appear here</p>
+          <p>Enter a prompt and hit compile</p>
+        </div>
+        <div id="outputResult" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="features" class="features">
+  <div class="features-inner">
+    <h2>Built for teams that ship AI content</h2>
+    <p class="features-sub">Everything you need to standardize, version, and deploy prompts across your organization.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>
+        </div>
+        <h3>Multi-model compilation</h3>
+        <p>One raw prompt compiles to Midjourney, FLUX, DALL-E 3, and Stable Diffusion — each respecting the model's native syntax and parameters.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="6" y1="3" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+        </div>
+        <h3>Version history</h3>
+        <p>Track every edit to your prompt templates. Branch, compare, and roll back to any version with a full audit trail.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+        </div>
+        <h3>Brand style tokens</h3>
+        <p>Define your organization's visual language once. Apply consistent style tokens across every compiled prompt automatically.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="cta-inner">
+    <h2>Start compiling smarter</h2>
+    <p>Stop rewriting prompts for every model. Write once, compile for all.</p>
+    <div class="cta-buttons">
+      <button class="btn-primary">Create free account</button>
+      <button class="btn-secondary">View documentation</button>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <p>&copy; 2026 PromptForge AI. All rights reserved.</p>
+    <div class="footer-links">
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">Status</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+const COMPILED = {
+  midjourney: {
+    "cinematic": "A lone traveler stands at the edge of a vast canyon at twilight, dramatic rim lighting carving their silhouette against layered mountain ridges fading into mist, film grain texture, anamorphic lens flare, cinematic color grading in amber and teal, shallow depth of field, epic scale composition --ar 21:9 --style raw --v 6.1",
+    "cyberpunk": "A lone traveler navigating neon-soaked alleyways in a rain-drenched megacity, holographic signage reflected in puddles, chrome surfaces catching magenta and cyan light, futuristic dystopian atmosphere, glowing circuitry patterns on walls, cinematic depth --ar 16:9 --style raw --v 6.1",
+    default: "A lone traveler standing at the edge of a vast canyon at golden hour, warm amber light washing across layered rock formations, atmospheric haze softening distant peaks, rich earth tones and deep shadows, epic cinematic scale, photographic quality --ar 16:9 --style raw --v 6.1"
+  },
+  flux: {
+    "cinematic": "A lone traveler pauses at the precipice of an immense canyon as twilight bleeds across the sky, their silhouette framed against layered ridges that recede into atmospheric haze. The scene is lit with dramatic rim light that carves sharp edges along every rock formation, while film grain adds tactile texture to the warm amber and cool teal color palette, captured with anamorphic lens characteristics and shallow depth of field that blurs the distant peaks into painterly abstraction.",
+    "cyberpunk": "A lone traveler navigates the narrow corridors of a rain-soaked megacity where holographic advertisements flicker overhead in electric magenta and cyan. Chrome surfaces reflect the neon glow while puddles on the cracked pavement create mirror images of the towering structures above, and glowing circuitry patterns trace along weathered walls, forming a composition of futuristic dystopian beauty.",
+    default: "A lone traveler stands at the precipice of a vast canyon as golden hour light spills across layered rock formations, painting everything in warm amber and deep sienna tones. Atmospheric haze softens the distant peaks into painterly abstraction, while rich textural detail in the foreground rocks reveals millennia of erosion, all captured in a composed frame with deliberate spatial arrangement and natural atmospheric perspective."
+  },
+  dalle3: {
+    "cinematic": "A dramatic scene of a lone traveler standing at the edge of a vast canyon during twilight, rendered with cinematic lighting that creates striking rim light around the figure. The composition uses an anamorphic lens perspective with warm amber tones transitioning to cool teal in the shadows. Film grain texture adds analog warmth, and the shallow depth of field draws focus to the traveler while the layered canyon ridges soften into atmospheric haze. The overall mood is epic yet intimate, reminiscent of a Roger Deakins cinematography frame.",
+    "cyberpunk": "A vivid cyberpunk scene depicting a lone traveler navigating through rain-soaked alleyways in a towering megacity. The image is rendered with electric neon colors — magenta, cyan, and acid green — reflecting off wet chrome surfaces and holographic displays. The composition emphasizes vertical scale with towering buildings framing the figure, and the mood captures the tension between human vulnerability and overwhelming technology, inspired by the visual language of Blade Runner and Ghost in the Shell.",
+    default: "A detailed scene of a lone traveler standing at the edge of a vast canyon during golden hour. The composition is carefully framed with the figure positioned at the rule of thirds, bathed in warm amber light that transitions to cool shadow. Rich earth tones dominate the palette, with atmospheric haze creating depth in the layered rock formations. The image emphasizes clarity and emotional resonance, with professional-grade quality reminiscent of landscape photography by Ansel Adams."
+  },
+  stablediffusion: {
+    "cinematic": "(masterpiece:1.4), (best quality:1.3), highly detailed, sharp focus, a lone traveler standing at the edge of a vast canyon, silhouette against dramatic twilight sky, (cinematic lighting:1.4), rim light, film grain, anamorphic lens flare, warm amber and cool teal color grading, shallow depth of field, epic cinematic scale, (bokeh:1.1), atmospheric haze, professional photography, 8K UHD",
+    "cyberpunk": "(masterpiece:1.4), (best quality:1.3), highly detailed, sharp focus, a lone traveler in rain-soaked neon-lit alleyways, megacity backdrop, (neon lighting:1.3), magenta and cyan reflections, chrome surfaces, holographic signage, glowing circuitry, futuristic dystopian atmosphere, wet pavement reflections, (cyberpunk aesthetic:1.2), professional photography, 8K UHD",
+    default: "(masterpiece:1.4), (best quality:1.3), highly detailed, sharp focus, a lone traveler at the edge of a vast canyon, golden hour lighting, warm amber tones, layered rock formations, atmospheric haze, rich earth tones, epic landscape composition, natural lighting, professional photography, detailed textures, 8K UHD"
+  }
+};
+
+let selectedModel = 'midjourney';
+let selectedStyles = [];
+
+const promptInput = document.getElementById('promptInput');
+const wordCount = document.getElementById('wordCount');
+promptInput.addEventListener('input', () => {
+  const words = promptInput.value.trim().split(/\s+/).filter(Boolean).length;
+  wordCount.textContent = words + ' words';
+});
+
+const modelBtn = document.getElementById('modelBtn');
+const modelDropdown = document.getElementById('modelDropdown');
+const modelIcon = document.getElementById('modelIcon');
+const modelName = document.getElementById('modelName');
+
+modelBtn.addEventListener('click', () => {
+  modelDropdown.classList.toggle('show');
+  modelBtn.classList.toggle('open');
+});
+
+document.querySelectorAll('.model-option').forEach(opt => {
+  opt.addEventListener('click', () => {
+    document.querySelectorAll('.model-option').forEach(o => o.classList.remove('active'));
+    opt.classList.add('active');
+    selectedModel = opt.dataset.value;
+    modelIcon.textContent = opt.dataset.icon;
+    modelName.textContent = opt.textContent.trim();
+    modelDropdown.classList.remove('show');
+    modelBtn.classList.remove('open');
+  });
+});
+
+document.addEventListener('click', (e) => {
+  if (!document.getElementById('modelSelect').contains(e.target)) {
+    modelDropdown.classList.remove('show');
+    modelBtn.classList.remove('open');
+  }
+});
+
+document.querySelectorAll('.style-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    pill.classList.toggle('active');
+    const s = pill.dataset.style;
+    if (selectedStyles.includes(s)) {
+      selectedStyles = selectedStyles.filter(x => x !== s);
+    } else {
+      selectedStyles.push(s);
+    }
+  });
+});
+
+const compileBtn = document.getElementById('compileBtn');
+const outputPanel = document.getElementById('outputPanel');
+const outputEmpty = document.getElementById('outputEmpty');
+const outputResult = document.getElementById('outputResult');
+const copyArea = document.getElementById('copyArea');
+
+compileBtn.addEventListener('click', compile);
+promptInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+    e.preventDefault();
+    compile();
+  }
+});
+
+function compile() {
+  const text = promptInput.value.trim();
+  if (!text) return;
+
+  compileBtn.disabled = true;
+  compileBtn.innerHTML = '<svg class="spin" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Compiling...';
+
+  outputPanel.classList.add('glow');
+  outputEmpty.style.display = 'none';
+  outputResult.style.display = 'block';
+  outputResult.innerHTML = '<div class="shimmer"><div class="shimmer-line"></div><div class="shimmer-line"></div><div class="shimmer-line"></div><div class="shimmer-line"></div></div>';
+
+  setTimeout(() => {
+    const modelData = COMPILED[selectedModel] || COMPILED.midjourney;
+    let compiled = '';
+    if (selectedStyles.length > 0 && modelData[selectedStyles[0]]) {
+      compiled = modelData[selectedStyles[0]];
+    } else {
+      compiled = modelData.default;
+    }
+
+    const tokens = Math.ceil(compiled.split(/\s+/).length * 1.3);
+    outputResult.innerHTML = `
+      <div class="output-compiled">
+        <div class="output-text">${compiled}</div>
+        <div class="output-meta">
+          <span class="meta-badge"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg> ~${tokens} tokens</span>
+          <span class="meta-badge"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/></svg> 16:9</span>
+          <span class="meta-badge"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ${Math.floor(Math.random() * 200 + 50)}ms</span>
+        </div>
+      </div>`;
+
+    copyArea.innerHTML = `<button class="copy-btn" id="copyBtn" onclick="copyOutput()"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy</button>`;
+
+    outputPanel.classList.remove('glow');
+    compileBtn.disabled = false;
+    compileBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg> Compile Prompt';
+  }, 1200);
+}
+
+function copyOutput() {
+  const text = outputResult.querySelector('.output-text');
+  if (text) {
+    navigator.clipboard.writeText(text.textContent);
+    const btn = document.getElementById('copyBtn');
+    btn.classList.add('copied');
+    btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Copied';
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy';
+    }, 2000);
+  }
+}
+</script>
+</body>
+</html>

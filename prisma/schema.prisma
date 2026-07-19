@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users            User[]
+  brandStyles      BrandStyle[]
+  promptTemplates  PromptTemplate[]
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  role      Role     @default(MEMBER)
+  plan      Plan     @default(FREE)
+  orgId     String
+  compilationCount    Int      @default(0)
+  compilationResetAt  DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization      Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  authoredTemplates PromptTemplate[]
+  savedPrompts      SavedPrompt[]
+
+  @@index([orgId])
+}
+
+model BrandStyle {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  tokens      Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId        String
+
+  @@index([orgId])
+}
+
+model PromptTemplate {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  currentVersion Int      @default(1)
+  tags           String[]
+  versions       Json
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId        String
+  author       User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId     String
+
+  @@index([orgId])
+  @@index([authorId])
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum Plan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+model SavedPrompt {
+  id             String   @id @default(cuid())
+  prompt         String
+  models         String[]
+  variables      Json?
+  styles         String[]
+  createdAt      DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  @@index([userId, createdAt(sort: Desc)])
+}
