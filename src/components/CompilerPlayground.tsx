@@ -123,16 +123,17 @@ export default function CompilerPlayground() {
         <div className="mb-12 text-center">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/5 px-3 py-1 text-xs font-medium text-accent">
             <Sparkles className="h-3 w-3" />
-            Cross-model prompt compiler
+            Cross-model prompt &amp; image compiler
           </div>
           <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-            Write once.
+            Write Once.
             <br />
-            <span className="text-accent">Compile for any model.</span>
+            <span className="text-accent">Generate Anywhere.</span>
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-base text-muted sm:text-lg">
-            Transform your raw prompts into optimized, model-specific syntax.
-            One input, four outputs, zero friction.
+            Transform your raw ideas into masterfully crafted prompts and
+            stunning AI-generated visuals. Compile your vision into
+            model-specific syntax for text and images—all with zero friction.
           </p>
         </div>
 

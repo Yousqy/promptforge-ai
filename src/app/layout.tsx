@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "PromptForge AI — Cross-Model Prompt Compiler",
   description:
-    "The collaborative prompt design system for teams. Write once, compile for any AI model.",
+    "The collaborative prompt design system for teams. Write once, generate anywhere with optimized text and image prompts.",
 };
 
 export default function RootLayout({
